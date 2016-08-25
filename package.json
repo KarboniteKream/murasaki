@@ -1,0 +1,25 @@
+{
+  "name": "murasaki",
+  "author": "Klemen Košir <klemen.kosir@kream.io (https://www.kream.io)",
+  "description": "The next-generation RSS reader.",
+  "version": "0.0.1",
+  "keywords": [
+    "rss",
+    "feed",
+    "atom",
+    "reader"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/KarboniteKream/murasaki.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KarboniteKream/murasaki.git"
+  },
+  "main": "main.js",
+  "dependencies": {
+    "sequelize": "3.24.*",
+    "mysql": "2.11.*",
+    "request": "2.74.*",
+    "feedparser": "1.1.*"
+  }
+}
