@@ -132,9 +132,12 @@ feedparser.on("readable", function() {
 // Save the feed and its posts.
 feedparser.on("end", function() {
 	// Get the favicon.
-	request("https://www.google.com/s2/favicons?domain=" + feed.meta.website, function(err, res, body) {
+	request.get({
+		url: "https://www.google.com/s2/favicons?domain=" + feed.meta.website,
+		encoding: null,
+	}, function(err, res, body) {
 		if(err !== null) {
-			// TODO
+			// TODO: There is nothing wrong, if there is an error.
 		}
 
 		if(res.statusCode == 200) {
