@@ -1,9 +1,9 @@
-// TODO: "use strict";
-// TODO: const, var or let?
-var Sequelize = require("sequelize");
-var request = require("request");
-var FeedParser = require("feedparser");
-var chalk = require("chalk");
+"use strict";
+
+const Sequelize = require("sequelize");
+const Request = require("request");
+const Feedparser = require("feedparser");
+const Log = require("./log");
 var config = require("./config");
 
 var db = new Sequelize(config.database, config.username, config.password, {
@@ -68,9 +68,9 @@ var Post = db.define("posts", {
 // TODO: options.force = true.
 db.sync();
 
-var url = "https://blog.rust-lang.org/feed.xml";
+let url = "https://blog.rust-lang.org/feed.xml";
 
-var data = {
+let data = {
 	feed: null,
 	posts: [],
 	error: false,
@@ -81,23 +81,25 @@ if(url.startsWith("http") === false) {
 	url = "http://" + url;
 }
 
-var feedparser = new FeedParser({
+let feedparser = new Feedparser({
 	addmeta: false,
 });
 
-// Get the feed and pipe it to FeedParser.
-request.get(url).on("response", function(response) {
+// Get the feed and pipe it to Feedparser.
+Request.get(url).on("response", function(response) {
+	let stream = this;
+
 	if(response.statusCode != 200) {
-		console.error(chalk.red("[Request] Error: Unable to retrieve the feed (HTTP " + response.statusCode + ")."));
+		Log.error("Request", "Error: Unable to retrieve the feed (HTTP " + response.statusCode + ").");
 		return;
 	}
 
-	this.pipe(feedparser);
+	stream.pipe(feedparser);
 });
 
 // An error occurred while parsing the feed.
 feedparser.on("error", function(err) {
-	console.error(chalk.red("[FeedParser] " + err + "."));
+	Log.error("Feedparser", err + ".");
 	data.error = true;
 });
 
@@ -115,7 +117,7 @@ feedparser.on("meta", function(meta) {
 
 // Get feed posts.
 feedparser.on("readable", function() {
-	var post = null;
+	let post = null;
 
 	while((post = this.read()) !== null) {
 		data.posts.push({
@@ -135,7 +137,7 @@ feedparser.on("end", function() {
 	}
 
 	// Get the favicon.
-	request.get({
+	Request.get({
 		url: "https://www.google.com/s2/favicons?domain=" + data.feed.website,
 		encoding: null,
 	}, function(err, res, body) {
@@ -150,7 +152,7 @@ feedparser.on("end", function() {
 			// TODO: created_at and updated_at are converted to UTC on save, but not on get.
 			// TODO: Sort articles by date. They could be unordered and also there will be order in the database.
 			// TODO: When adding, check if the link already exists.
-			for(var i = 0; i < data.posts.length; i++) {
+			for(let i = 0; i < data.posts.length; i++) {
 				data.posts[i].feed_id = feed.id;
 				Post.create(data.posts[i]);
 			}

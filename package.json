@@ -15,6 +15,7 @@
     "type": "git",
     "url": "https://github.com/KarboniteKream/murasaki.git"
   },
+  "bugs": "https://github.com/KarboniteKream/murasaki/issues",
   "main": "main.js",
   "dependencies": {
     "chalk": "1.1.*",
