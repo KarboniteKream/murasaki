@@ -1,72 +1,9 @@
 "use strict";
 
-const Sequelize = require("sequelize");
 const Request = require("request");
 const Feedparser = require("feedparser");
 const Log = require("./log");
-var config = require("./config");
-
-var db = new Sequelize(config.database, config.username, config.password, {
-	host: config.host,
-	dialect: "mysql",
-	pool: {
-		max: 5,
-		min: 0,
-		idle: 1000,
-		handleDisconnects: true,
-	},
-	define: {
-		underscored: true,
-	},
-	// logging: false,
-	// timezone: "+02:00",
-});
-
-var Feed = db.define("feeds", {
-	title: {
-		type: Sequelize.STRING(255),
-	},
-	description: {
-		// TODO: Text?
-		type: Sequelize.STRING(1024),
-	},
-	website: {
-		type: Sequelize.STRING(1024),
-	},
-	link: {
-		type: Sequelize.STRING(1024),
-	},
-	icon: {
-		type: Sequelize.BLOB,
-	},
-	last_updated: {
-		type: Sequelize.DATE,
-	},
-});
-
-var Post = db.define("posts", {
-	feed_id: {
-		type: Sequelize.INTEGER(11),
-	},
-	title: {
-		type: Sequelize.STRING(255),
-	},
-	link: {
-		type: Sequelize.STRING(1024),
-	},
-	author: {
-		type: Sequelize.STRING(255),
-	},
-	date: {
-		type: Sequelize.DATE,
-	},
-	content: {
-		type: Sequelize.TEXT,
-	},
-});
-
-// TODO: options.force = true.
-db.sync();
+const models = require("./models");
 
 let url = "https://blog.rust-lang.org/feed.xml";
 
@@ -148,13 +85,13 @@ feedparser.on("end", function() {
 
 		// TODO: Error handling.
 		// TODO: If data.feed.link exists, update instead.
-		Feed.create(data.feed).then(function(feed) {
+		models.Feed.create(data.feed).then(function(feed) {
 			// TODO: created_at and updated_at are converted to UTC on save, but not on get.
 			// TODO: Sort articles by date. They could be unordered and also there will be order in the database.
 			// TODO: When adding, check if the link already exists.
 			for(let i = 0; i < data.posts.length; i++) {
 				data.posts[i].feed_id = feed.id;
-				Post.create(data.posts[i]);
+				models.Post.create(data.posts[i]);
 			}
 		});
 	});
