@@ -17,9 +17,10 @@
   },
   "main": "main.js",
   "dependencies": {
-    "sequelize": "3.24.*",
+    "chalk": "1.1.*",
+    "feedparser": "1.1.*",
     "mysql": "2.11.*",
     "request": "2.74.*",
-    "feedparser": "1.1.*"
+    "sequelize": "3.24.*"
   }
 }

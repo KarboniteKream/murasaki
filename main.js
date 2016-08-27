@@ -3,6 +3,7 @@
 var Sequelize = require("sequelize");
 var request = require("request");
 var FeedParser = require("feedparser");
+var chalk = require("chalk");
 var config = require("./config");
 
 var db = new Sequelize(config.database, config.username, config.password, {
@@ -69,9 +70,10 @@ db.sync();
 
 var url = "https://blog.rust-lang.org/feed.xml";
 
-var feed = {
-	meta: null,
+var data = {
+	feed: null,
 	posts: [],
+	error: false,
 };
 
 if(url.startsWith("http") === false) {
@@ -79,88 +81,78 @@ if(url.startsWith("http") === false) {
 	url = "http://" + url;
 }
 
+var feedparser = new FeedParser({
+	addmeta: false,
+});
+
 // Get the feed and pipe it to FeedParser.
-request(url).on("error", function(err) {
-	console.log("Unable to get the feed: ", err);
-}).on("response", function(response) {
-	// TODO: Test behaviour.
+request.get(url).on("response", function(response) {
 	if(response.statusCode != 200) {
-		return this.emit("error", new Error("Bad status code."));
+		console.error(chalk.red("[Request] Error: Unable to retrieve the feed (HTTP " + response.statusCode + ")."));
+		return;
 	}
 
 	this.pipe(feedparser);
 });
 
-var feedparser = new FeedParser({
-	addmeta: false,
-});
-
 // An error occurred while parsing the feed.
 feedparser.on("error", function(err) {
-	console.log("Unable to parse the feed: ", err);
+	console.error(chalk.red("[FeedParser] " + err + "."));
+	data.error = true;
 });
 
 // Get feed metadata.
 feedparser.on("meta", function(meta) {
-	feed.meta = {
+	data.feed = {
 		title: meta.title,
 		description: meta.description,
 		website: meta.link,
 		link: meta.xmlurl,
-		// TODO: Icon.
-		icon: null,
-		last_updated: meta.date, // Latest update.
+		icon: null, // Only available in Atom feeds.
+		last_updated: meta.date,
 	};
 });
 
 // Get feed posts.
 feedparser.on("readable", function() {
-	var item;
+	var post = null;
 
-	while((item = this.read()) !== null) {
-		feed.posts.push({
-			title: item.title,
-			link: item.link,
-			description: item.description,
-			pubdate: item.pubdate,
-			date: item.date,
-			author: item.author,
+	while((post = this.read()) !== null) {
+		data.posts.push({
+			title: post.title,
+			link: post.link,
+			author: post.author,
+			date: post.pubdate, // Already in UTC.
+			content: post.description,
 		});
 	}
 });
 
 // Save the feed and its posts.
 feedparser.on("end", function() {
+	if(data.error === true) {
+		return;
+	}
+
 	// Get the favicon.
 	request.get({
-		url: "https://www.google.com/s2/favicons?domain=" + feed.meta.website,
+		url: "https://www.google.com/s2/favicons?domain=" + data.feed.website,
 		encoding: null,
 	}, function(err, res, body) {
-		if(err !== null) {
-			// TODO: There is nothing wrong, if there is an error.
+		// TODO: Handle error.
+		if(err !== null && res.statusCode == 200) {
+			data.feed.icon = body;
 		}
 
-		if(res.statusCode == 200) {
-			feed.meta.icon = body;
-		}
-
-		Feed.create(feed.meta).then(function(result) {
+		// TODO: Error handling.
+		// TODO: If data.feed.link exists, update instead.
+		Feed.create(data.feed).then(function(feed) {
 			// TODO: created_at and updated_at are converted to UTC on save, but not on get.
-			var feed_id = result.id;
-
 			// TODO: Sort articles by date. They could be unordered and also there will be order in the database.
 			// TODO: When adding, check if the link already exists.
-			for(var i = 0; i < feed.posts.length; i++) {
-				var post = feed.posts[i];
-
-				Post.create({
-					feed_id: feed_id,
-					title: post.title,
-					link: post.link,
-					author: post.author,
-					date: post.pubdate, // Already in UTC.
-					content: post.description, // TODO: Summary?
-				});
+			for(var i = 0; i < data.posts.length; i++) {
+				data.posts[i].feed_id = feed.id;
+				Post.create(data.posts[i]);
 			}
 		});
 	});
