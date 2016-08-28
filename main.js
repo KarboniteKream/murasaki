@@ -3,7 +3,9 @@
 const Request = require("request");
 const Feedparser = require("feedparser");
 const Log = require("./log");
-const models = require("./models");
+
+const Feed = require("./models/feed");
+const Post = require("./models/post");
 
 let url = "https://blog.rust-lang.org/feed.xml";
 
@@ -61,7 +63,7 @@ feedparser.on("readable", function() {
 			title: post.title,
 			link: post.link,
 			author: post.author,
-			date: post.pubdate, // Already in UTC.
+			date: post.pubdate, // TODO: Convert to UTC.
 			content: post.description,
 		});
 	}
@@ -79,19 +81,19 @@ feedparser.on("end", function() {
 		encoding: null,
 	}, function(err, res, body) {
 		// TODO: Handle error.
-		if(err !== null && res.statusCode == 200) {
+		if(err === null && res.statusCode == 200) {
 			data.feed.icon = body;
 		}
 
 		// TODO: Error handling.
 		// TODO: If data.feed.link exists, update instead.
-		models.Feed.create(data.feed).then(function(feed) {
-			// TODO: created_at and updated_at are converted to UTC on save, but not on get.
-			// TODO: Sort articles by date. They could be unordered and also there will be order in the database.
-			// TODO: When adding, check if the link already exists.
+		new Feed(data.feed).save().then(function(feed) {
+			// TODO: Convert to UTC.
+			// TODO: When adding, check if the link already exists?
+
 			for(let i = 0; i < data.posts.length; i++) {
 				data.posts[i].feed_id = feed.id;
-				models.Post.create(data.posts[i]);
+				new Post(data.posts[i]).save();
 			}
 		});
 	});

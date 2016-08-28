@@ -18,10 +18,11 @@
   "bugs": "https://github.com/KarboniteKream/murasaki/issues",
   "main": "main.js",
   "dependencies": {
+    "bookshelf": "0.10.*",
     "chalk": "1.1.*",
     "feedparser": "1.1.*",
+    "knex": "0.11.*",
     "mysql": "2.11.*",
-    "request": "2.74.*",
-    "sequelize": "3.24.*"
+    "request": "2.74.*"
   }
 }

@@ -1,40 +1,13 @@
 "use strict";
 
-module.exports = function(database, Sequelize) {
-	let Post = database.define("Post", {
-		id: {
-			type: Sequelize.INTEGER(11),
-			primaryKey: true,
-			autoIncrement: true,
-		},
-		feed_id: {
-			type: Sequelize.INTEGER(11),
-		},
-		title: {
-			type: Sequelize.STRING(255),
-			allowNull: false,
-		},
-		link: {
-			type: Sequelize.STRING(1024),
-		},
-		author: {
-			type: Sequelize.STRING(255),
-		},
-		date: {
-			type: Sequelize.DATE,
-		},
-		content: {
-			type: Sequelize.TEXT,
-		},
-	}, {
-		classMethods: {
-			associate: function(models) {
-				Post.belongsTo(models.Feed, {
-					onDelete: "CASCADE",
-				});
-			},
-		},
-	});
+let Bookshelf = require("../database.js");
+require("./feed");
 
-	return Post;
-};
+module.exports = Bookshelf.model("Post", {
+	tableName: "Post",
+	hasTimestamps: true,
+
+	feed: function() {
+		return this.belongsTo("Feed");
+	},
+});
