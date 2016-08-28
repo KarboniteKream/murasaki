@@ -18,6 +18,7 @@
   "bugs": "https://github.com/KarboniteKream/murasaki/issues",
   "main": "main.js",
   "dependencies": {
+    "bluebird": "3.4.*",
     "bookshelf": "0.10.*",
     "chalk": "1.1.*",
     "feedparser": "1.1.*",

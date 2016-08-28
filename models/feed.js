@@ -10,4 +10,12 @@ module.exports = Bookshelf.model("Feed", {
 	posts: function() {
 		return this.hasMany("Feed");
 	},
+
+	parse: function(attributes) {
+		if("icon" in attributes === true) {
+			attributes.icon = attributes.icon.toString("base64");
+		}
+
+		return attributes;
+	},
 });

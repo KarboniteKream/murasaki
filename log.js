@@ -1,6 +1,14 @@
 "use strict";
 
-var chalk = require("chalk");
+let chalk = require("chalk");
+
+module.exports.success = function(tag, message) {
+	if(tag === null) {
+		console.log(chalk.green(message));
+	} else {
+		console.log(chalk.green("[" + tag + "] " + message));
+	}
+};
 
 module.exports.warn = function(tag, message) {
 	if(tag === null) {
@@ -8,7 +16,7 @@ module.exports.warn = function(tag, message) {
 	} else {
 		console.warn(chalk.yellow("[" + tag + "] " + message));
 	}
-}
+};
 
 module.exports.error = function(tag, message) {
 	if(tag === null) {
