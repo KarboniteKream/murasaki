@@ -1,27 +1,24 @@
 "use strict";
 
-let chalk = require("chalk");
+const chalk = require("chalk");
+const moment = require("moment");
+
+function write(color, tag, message) {
+	if(tag !== null) {
+		message = "[" + tag + "] " + message;
+	}
+
+	console.log(color(moment().format("YYYY-MM-DD HH:mm:ss") + " " + message));
+}
 
 module.exports.success = function(tag, message) {
-	if(tag === null) {
-		console.log(chalk.green(message));
-	} else {
-		console.log(chalk.green("[" + tag + "] " + message));
-	}
+	write(chalk.green, tag, message);
 };
 
 module.exports.warn = function(tag, message) {
-	if(tag === null) {
-		console.warn(chalk.yellow(message));
-	} else {
-		console.warn(chalk.yellow("[" + tag + "] " + message));
-	}
+	write(chalk.yellow, tag, message);
 };
 
 module.exports.error = function(tag, message) {
-	if(tag === null) {
-		console.error(chalk.red(message));
-	} else {
-		console.error(chalk.red("[" + tag + "] " + message));
-	}
+	write(chalk.red, tag, message);
 };
